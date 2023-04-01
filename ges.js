@@ -7,26 +7,20 @@ function Gesture(element, options) {
   this.distance = { x: 0, y: 0 }; // 移动距离
   this.tapCount = 0; // 点击计数器
   this.points = []; // 移动位置数组 长度20 用于计算是否触发swipe
-  this.pointers = []; // 触摸点数组
  
   this.isPointerdown = false; // 按下标识
   this.longTapTimeout = null; // 长按延时器
   // 绑定事件
   this.bindEventListener();
 }
-/**
-* 处理pointerdown
-* @param {PointerEvent} e 
-*/
+
 Gesture.prototype.handlePointerdown = function (e) {
   // 如果是鼠标点击，只响应左键
   if (e.pointerType === 'mouse' && e.button !== 0) {
       return;
   }
-  this.pointers.push(e);
-  this.point.x = this.pointers[0].clientX;
-  this.point.y = this.pointers[0].clientY;
-  console.log('初始点击',this.point);
+  this.point.x = e.clientX;
+  this.point.y = e.clientY;
 
     this.isPointerdown = true;
     // 将特定元素指定为未来指针事件的捕获目标。指针的后续事件将以捕获元素为目标，直到捕获被释放
@@ -43,25 +37,22 @@ Gesture.prototype.handlePointerdown = function (e) {
               if (this.options.longTap) {
                   this.options.longTap(e);
               }
-          }, 1000);
+          }, 500);
       }
+  console.log(this.tapCount);
+
 }
-
-
-
 
 Gesture.prototype.handlePointermove = function (e) {
   if (!this.isPointerdown) {
       return;
   }
   e.preventDefault()
-  console.log('1',e.screenX, e.screenY);
-  this.handlePointers(e, 'update');
-  const current1 = { x: this.pointers[0].clientX, y: this.pointers[0].clientY };
-  console.log(current1);
+  const current1 = { x: e.clientX, y: e.clientY };
       this.distance.x = current1.x - this.point.x;
       this.distance.y = current1.y - this.point.y;
       // 偏移量大于10表示移动
+      console.log(this.distance);
       if (Math.abs(this.distance.x) > 10 || Math.abs(this.distance.y) > 10) {
           this.tapCount = 0;
           clearTimeout(this.longTapTimeout);
@@ -70,7 +61,6 @@ Gesture.prototype.handlePointermove = function (e) {
       if (this.points.length > 20) {
           this.points.pop();
       }  
-
 }
 
 Gesture.prototype.handlePointerup = function (e) {
@@ -78,38 +68,19 @@ Gesture.prototype.handlePointerup = function (e) {
       return;
   }
 
-  this.handlePointers(e, 'delete');
-  if (this.pointers.length === 0) {
       this.isPointerdown = false;
       clearTimeout(this.longTapTimeout);
       if (this.tapCount === 0) {
           this.handleSwipe(e);
       } 
-  }
 }
-
-
-Gesture.prototype.handlePointers = function (e, type) {
-
-  for (let i = 0; i < this.pointers.length; i++) {
-      if (this.pointers[i].pointerId === e.pointerId) {
-          if (type === 'update') {
-              this.pointers[i] = e;
-          } else if (type === 'delete') {
-              this.pointers.splice(i, 1);
-          }
-      }
-  }
-}
-
-
 
 Gesture.prototype.handleSwipe = function (e) {
-  let MIN_SWIPE_DISTANCE = 10;
+  let MIN_SWIPE_DISTANCE = 20;
   let x = 0, y = 0;
   // 如果200ms内移动距离大于20
   for (const item of this.points) {
-      if (e.timeStamp - item.timeStamp < 400) {
+      if (e.timeStamp - item.timeStamp < 200) {
           x = e.clientX - item.x;
           y = e.clientY - item.y;
       } else {
