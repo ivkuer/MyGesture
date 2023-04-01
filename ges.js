@@ -154,6 +154,6 @@ const gesture = new Gesture(divDom, {
       window.alert(e._swipeDirection)
     },
     longTap: function() {
-        console.log('长按');
+        window.alert('长按');
     }
 });
