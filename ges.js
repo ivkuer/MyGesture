@@ -26,6 +26,8 @@ Gesture.prototype.handlePointerdown = function (e) {
   this.pointers.push(e);
   this.point.x = this.pointers[0].clientX;
   this.point.y = this.pointers[0].clientY;
+  console.log('初始点击',this.point);
+
     this.isPointerdown = true;
     // 将特定元素指定为未来指针事件的捕获目标。指针的后续事件将以捕获元素为目标，直到捕获被释放
       this.element.setPointerCapture(e.pointerId);
@@ -41,19 +43,24 @@ Gesture.prototype.handlePointerdown = function (e) {
               if (this.options.longTap) {
                   this.options.longTap(e);
               }
-          }, 500);
+          }, 1000);
       }
 }
+
+
+
 
 Gesture.prototype.handlePointermove = function (e) {
   if (!this.isPointerdown) {
       return;
   }
+  e.preventDefault()
+  console.log('1',e.screenX, e.screenY);
   this.handlePointers(e, 'update');
   const current1 = { x: this.pointers[0].clientX, y: this.pointers[0].clientY };
+  console.log(current1);
       this.distance.x = current1.x - this.point.x;
       this.distance.y = current1.y - this.point.y;
-      console.log(Math.abs(this.distance.x));
       // 偏移量大于10表示移动
       if (Math.abs(this.distance.x) > 10 || Math.abs(this.distance.y) > 10) {
           this.tapCount = 0;
@@ -62,7 +69,7 @@ Gesture.prototype.handlePointermove = function (e) {
       this.points.unshift({ x: current1.x, y: current1.y, timeStamp: e.timeStamp });
       if (this.points.length > 20) {
           this.points.pop();
-      }   
+      }  
 
 }
 
@@ -70,6 +77,7 @@ Gesture.prototype.handlePointerup = function (e) {
   if (!this.isPointerdown) {
       return;
   }
+
   this.handlePointers(e, 'delete');
   if (this.pointers.length === 0) {
       this.isPointerdown = false;
@@ -97,7 +105,7 @@ Gesture.prototype.handlePointers = function (e, type) {
 
 
 Gesture.prototype.handleSwipe = function (e) {
-  const MIN_SWIPE_DISTANCE = 10;
+  let MIN_SWIPE_DISTANCE = 10;
   let x = 0, y = 0;
   // 如果200ms内移动距离大于20
   for (const item of this.points) {
@@ -108,6 +116,7 @@ Gesture.prototype.handleSwipe = function (e) {
           break;
       };
   }
+ 
   if (Math.abs(x) > MIN_SWIPE_DISTANCE || Math.abs(y) > MIN_SWIPE_DISTANCE) {
       if (Math.abs(x) > Math.abs(y)) {
           e._swipeDirection = x > 0 ? 'right' : 'left';
